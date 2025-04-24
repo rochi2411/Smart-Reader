@@ -29,7 +29,7 @@ The Advanced Document QA System is a powerful document processing and question-a
 - Python 3.8+
 - PyTorch
 - 16GB+ RAM (8GB+ recommended for processing large documents)
-- 8 GB + GPU
+- 8GB+ GPU (recommended for faster processing, especially for deep learning tasks and large models)
 - Internet connection (for downloading models and crawling links)
 
 ## Installation
