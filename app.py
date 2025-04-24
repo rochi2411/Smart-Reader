@@ -48,7 +48,6 @@ import cv2
 from pptx import Presentation
 
 # For tables
-import tabula
 import camelot
 
 # For DOCX processing
@@ -56,7 +55,8 @@ import docx
 
 # Set up logging
 logging.basicConfig(
-    filename='app.log',
+    filename='app.log', 
+    filemode='w',
     level=logging.INFO, 
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
@@ -156,33 +156,6 @@ class DocumentProcessor:
     def _extract_tables_from_pdf_page(self, page, page_num: int, pdf_path: str) -> List[str]:
         """Extract tables from a PDF page using both PyMuPDF's table finder and tabula/camelot."""
         table_texts = []
-        
-        # 1. Try PyMuPDF's table detection first
-        # try:
-        #     tables = page.find_tables()
-        #     if tables and tables.tables:
-        #         for i, table in enumerate(tables.tables):
-        #             rows = []
-        #             for row in table.rows:
-        #                 row_data = [cell.text for cell in row.cells]
-        #                 rows.append(" | ".join(row_data))
-        #             table_text = "\n".join(rows)
-        #             table_texts.append(f"Table {i+1} on page {page_num+1}:\n{table_text}")
-        # except Exception as e:
-        #     logger.warning(f"PyMuPDF table extraction failed on page {page_num+1}: {e}")
-        
-        # 2. Try tabula for more advanced table extraction (Java-based, works well for many tables)
-        # try:
-        #     tables = tabula.read_pdf(pdf_path, pages=page_num+1)
-        #     for i, table in enumerate(tables):
-        #         if not table.empty:
-        #             table_text = f"Table {i+1} detected by tabula on page {page_num+1}:\n{table.to_string()}"
-        #             table_texts.append(table_text)
-        # except Exception as e:
-        #     logger.warning(f"Tabula table extraction failed on page {page_num+1}: {e}")
-        
-        # 3. Try camelot as a final option (better for complex tables but slower)
-        # if not table_texts:
         try:
             tables = camelot.read_pdf(pdf_path, pages=str(page_num+1))
             if len(tables) > 0:
@@ -263,56 +236,6 @@ class DocumentProcessor:
                 logger.warning(f"Failed to crawl URL {url}: {e}")
         
         return crawled_content
-    
-    # def _crawl_links(self) -> List[Dict[str, Any]]:
-    #     """Crawl extracted links to gather additional content."""
-    #     logger.info(f"Crawling {len(self.extracted_links)} extracted links...")
-    #     all_contents = []
-
-    #     if not self.crawl_links or not self.extracted_links:
-    #         return all_contents
-
-    #     links_crawled = 0
-    #     for link_data in self.extracted_links:
-    #         url = link_data["link"]
-
-    #         if not url.startswith(('http://', 'https://')):
-    #             continue
-
-    #         if links_crawled >= self.max_links_to_crawl:
-    #             logger.info(f"Reached maximum links to crawl ({self.max_links_to_crawl})")
-    #             break
-
-    #         try:
-    #             logger.info(f"Crawling link: {url}")
-    #             response = requests.get(url, timeout=10)
-    #             response.raise_for_status()
-
-    #             soup = BeautifulSoup(response.text, 'html.parser')
-    #             for script in soup(["script", "style"]):
-    #                 script.extract()
-
-    #             text = soup.get_text()
-    #             lines = (line.strip() for line in text.splitlines())
-    #             chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
-    #             cleaned_text = '\n'.join(chunk for chunk in chunks if chunk)
-
-    #             if cleaned_text:
-    #                 all_contents.append({
-    #                     "type": "link_content",
-    #                     "link": url,
-    #                     "content": cleaned_text
-    #                 })
-
-    #                 links_crawled += 1
-    #                 time.sleep(1)
-
-    #         except Exception as e:
-    #             logger.warning(f"Failed to crawl link {url}: {e}")
-
-    #     logger.info(f"Successfully crawled {links_crawled} links")
-    #     return all_contents
-
 
     def _get_images_from_pdf_page(self, page) -> List[Image.Image]:
         """Extract images from a PDF page using PyMuPDF."""
@@ -537,6 +460,8 @@ class DocumentProcessor:
                     })
             
             # 4. Extract images (OCR if enabled)
+            # logger.info("Extracting images from DOCX...")
+            # logger.debug(f"Use OCR: {self.use_ocr}")
             if self.use_ocr:
                 if hasattr(doc, 'part'):
                     temp_dir = tempfile.mkdtemp()
@@ -549,7 +474,9 @@ class DocumentProcessor:
                                     with open(image_path, "wb") as f:
                                         f.write(rel.target_part.blob)
                                     
-                                    ocr_text = _ocr_image(Image.open(image_path))
+                                    ocr_text = self._ocr_image(Image.open(image_path))
+                                    print(ocr_text)
+                                    # logger.debug(f"OCR text from image {image_count+1}: {ocr_text}")
                                     if ocr_text.strip():
                                         all_contents.append({
                                             "type": "image_ocr",
@@ -564,98 +491,7 @@ class DocumentProcessor:
         except Exception as e:
             logger.error(f"Error processing DOCX {file_path}: {e}", exc_info=True)
         
-        return all_contents
-    
-    # def _process_docx(self, file_path: str) -> List[Dict[str, Any]]:
-    #     """Process DOCX file with full extraction of text, tables, images, and links."""
-    #     logger.info(f"Processing DOCX file: {file_path}")
-    #     all_contents = []
-
-    #     try:
-    #         doc = docx.Document(file_path)
-    #         paragraphs_text = []
-    #         hyperlinks = []
-
-    #         # Extract text and hyperlinks
-    #         for para in doc.paragraphs:
-    #             paragraphs_text.append(para.text)
-
-    #             for run in para.runs:
-    #                 if hasattr(run, '_element') and run._element.xpath('.//w:hyperlink'):
-    #                     for hyperlink in run._element.xpath('.//w:hyperlink'):
-    #                         if 'r:id' in hyperlink.attrib:
-    #                             rid = hyperlink.attrib['{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id']
-    #                             rels = doc.part.rels
-    #                             if rid in rels:
-    #                                 target = rels[rid].target_ref
-    #                                 link_text = "".join([t.text for t in hyperlink.xpath('.//w:t')])
-    #                                 link_info = f"Link: {link_text} -> {target}"
-    #                                 hyperlinks.append(link_info)
-    #                                 if link_info not in self.extracted_links:
-    #                                     self.extracted_links.append(link_info)
-
-    #         if paragraphs_text:
-    #             all_contents.append({
-    #                 "type": "text",
-    #                 "content": "\n".join(paragraphs_text)
-    #             })
-
-    #         if hyperlinks:
-    #             all_contents.append({
-    #                 "type": "hyperlinks",
-    #                 "content": f"Links in document:\n" + "\n".join(hyperlinks)
-    #             })
-
-    #             if self.crawl_links:
-    #                 crawled_link_contents = self._crawl_links()
-    #                 all_contents.extend(crawled_link_contents)
-
-    #         # Extract tables
-    #         for i, table in enumerate(doc.tables):
-    #             rows = []
-    #             for row in table.rows:
-    #                 row_content = [cell.text for cell in row.cells]
-    #                 rows.append(" | ".join(row_content))
-
-    #             table_text = f"Table {i+1}:\n" + "\n".join(rows)
-    #             all_contents.append({
-    #                 "type": "table",
-    #                 "content": table_text
-    #             })
-
-    #         # Extract and OCR images
-    #         if self.use_ocr:
-    #             temp_dir = tempfile.mkdtemp()
-    #             try:
-    #                 image_count = 0
-    #                 for rel in doc.part.rels.values():
-    #                     if "image" in rel.target_ref:
-    #                         try:
-    #                             image_blob = rel.target_part.blob
-    #                             image_filename = os.path.join(temp_dir, f"image_{image_count}.png")
-    #                             with open(image_filename, "wb") as f:
-    #                                 f.write(image_blob)
-
-    #                             img = Image.open(image_filename)
-    #                             ocr_text = self._ocr_image(img)
-
-    #                             if ocr_text.strip():
-    #                                 all_contents.append({
-    #                                     "type": "embedded_image_ocr",
-    #                                     "content": f"Embedded image {image_count+1} OCR:\n{ocr_text}"
-    #                                 })
-
-    #                             image_count += 1
-    #                         except Exception as e:
-    #                             logger.warning(f"Failed to process embedded image {image_count} in DOCX: {e}")
-    #             finally:
-    #                 shutil.rmtree(temp_dir)
-
-    #     except Exception as e:
-    #         logger.error(f"Error processing DOCX {file_path}: {e}", exc_info=True)
-
-    #     return all_contents
-
+        return all_contents 
     
     def _process_image_with_ocr(self, file_path: str) -> str:
         """Process image with OCR to extract text."""
@@ -696,11 +532,11 @@ class DocumentProcessor:
         
         try:
             prs = Presentation(file_path)
-            
+            # logger.info(f"Loaded PowerPoint presentation with {len(prs.slides)} slides.")
             for i, slide in enumerate(prs.slides):
                 slide_text = f"Slide {i+1}:\n"
                 hyperlinks = []
-
+                # logger.info(f"Processing slide {i+1}...")
                 # Extract text and hyperlinks from shapes
                 for shape in slide.shapes:
                     if hasattr(shape, "text") and shape.text:
@@ -712,12 +548,13 @@ class DocumentProcessor:
                             rid = link.attrib.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id')
                             if rid and rid in slide.part.rels:
                                 target = slide.part.rels[rid].target_ref
+                                # logger.info(f"Found hyperlink: {target}")
                                 if target.startswith("http"):
                                     link_info = {'type': 'hyperlink', 'link': target}
                                     if link_info not in hyperlinks and link_info not in self.extracted_links:
                                         hyperlinks.append(link_info)
                                         self.extracted_links.append(link_info)
-
+                # logger.info(f"Slide {i+1} hyperlinks: {hyperlinks}")
                 # Add slide text
                 if slide_text.strip() != f"Slide {i+1}:":
                     all_contents.append({
@@ -737,9 +574,11 @@ class DocumentProcessor:
 
                     # Crawl the links if enabled
                     if self.crawl_links:
-                        crawled = self._crawl_links(hyperlinks)
+                        url_list = [h["link"] for h in hyperlinks]
+                        crawled = self._crawl_links(url_list)
                         all_contents.extend(crawled)
 
+                # logger.info(all_contents)
                 # OCR on images
                 if self.use_ocr:
                     temp_dir = tempfile.mkdtemp()
@@ -754,6 +593,7 @@ class DocumentProcessor:
                                         f.write(image_bytes)
                                     
                                     ocr_text = self._ocr_image(Image.open(image_path))
+                                    logger.info('OCR Text...',ocr_text)
                                     if ocr_text.strip():
                                         all_contents.append({
                                             "type": "embedded_image_ocr",
@@ -771,94 +611,6 @@ class DocumentProcessor:
         
         return all_contents
 
-    # def _process_powerpoint(self, file_path: str) -> List[Dict[str, Any]]:
-    #     """Process PowerPoint file."""
-    #     logger.info(f"Processing PowerPoint file: {file_path}")
-    #     all_contents = []
-        
-    #     try:
-    #         prs = Presentation(file_path)
-            
-    #         # Process each slide
-    #         for i, slide in enumerate(prs.slides):
-    #             slide_text = f"Slide {i+1}:\n"
-    #             hyperlinks = []
-                
-    #             # Extract text content
-    #             for shape in slide.shapes:
-    #                 if hasattr(shape, "text") and shape.text:
-    #                     slide_text += shape.text + "\n"
-                    
-    #                 # Extract hyperlinks if available
-    #                 if hasattr(shape, "_element") and shape._element.xpath('.//a:hlinkClick'):
-    #                     for link in shape._element.xpath('.//a:hlinkClick'):
-    #                         if hasattr(link, 'attrib') and 'r:id' in link.attrib:
-    #                             rid = link.attrib['{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id']
-    #                             if hasattr(slide, 'rels') and rid in slide.rels:
-    #                                 target = slide.rels[rid].target_ref
-    #                                 link_text = shape.text if hasattr(shape, "text") else "[Shape]"
-    #                                 link_info = f"Link: {link_text} -> {target}"
-    #                                 hyperlinks.append(link_info)
-    #                                 if link_info not in self.extracted_links:
-    #                                     self.extracted_links.append(link_info)
-                
-    #             # Add text content
-    #             if slide_text.strip() != f"Slide {i+1}:":
-    #                 all_contents.append({
-    #                     "type": "text",
-    #                     "content": slide_text,
-    #                     "slide": i+1
-    #                 })
-                
-    #             # Add hyperlinks
-    #             if hyperlinks:
-    #                 all_contents.append({
-    #                     "type": "hyperlinks",
-    #                     "content": f"Links on slide {i+1}:\n" + "\n".join(hyperlinks),
-    #                     "slide": i+1
-    #                 })
-                
-    #             # Extract and process images if OCR is enabled
-    #             if self.use_ocr:
-    #                 temp_dir = tempfile.mkdtemp()
-    #                 try:
-    #                     image_count = 0
-    #                     for shape in slide.shapes:
-    #                         if hasattr(shape, "image"):
-    #                             try:
-    #                                 # Try to get image data
-    #                                 image_bytes = shape.image.blob
-    #                                 if image_bytes:
-    #                                     image_filename = os.path.join(temp_dir, f"slide_{i+1}_image_{image_count}.png")
-    #                                     with open(image_filename, "wb") as f:
-    #                                         f.write(image_bytes)
-                                        
-    #                                     # Process with OCR
-    #                                     img = Image.open(image_filename)
-    #                                     ocr_text = self._ocr_image(img)
-                                        
-    #                                     if ocr_text.strip():
-    #                                         all_contents.append({
-    #                                             "type": "embedded_image_ocr",
-    #                                             "content": f"Image {image_count+1} OCR from slide {i+1}:\n{ocr_text}",
-    #                                             "slide": i+1
-    #                                         })
-                                        
-    #                                     image_count += 1
-    #                             except Exception as e:
-    #                                 logger.warning(f"Failed to process image in slide {i+1}: {e}")
-    #                 finally:
-    #                     # Clean up
-    #                     shutil.rmtree(temp_dir)
-            
-    #         if self.crawl_links:
-    #             crawled_contents = self._crawl_links()
-    #             all_contents.extend(crawled_contents)
-
-    #     except Exception as e:
-    #         logger.error(f"Error processing PowerPoint {file_path}: {e}")
-        
-    #     return all_contents
     
     def _process_json(self, file_path: str) -> str:
         """Process JSON file."""
@@ -924,71 +676,7 @@ class DocumentProcessor:
             logger.error(f"Error processing CSV {file_path}: {e}")
             
         return all_contents
-    
-    # def _crawl_links(self) -> List[Dict[str, Any]]:
-    #     """Crawl extracted links to gather additional content."""
-    #     logger.info(f"Crawling {len(self.extracted_links)} extracted links...")
-    #     all_contents = []
-        
-    #     if not self.crawl_links or not self.extracted_links:
-    #         return all_contents
-        
-    #     links_crawled = 0
-    #     for link_info in self.extracted_links:
-    #         # Extract URL from link info
-    #         match = re.search(r'-> (.+)$', link_info)
-    #         if not match:
-    #             continue
-                
-    #         url = match.group(1).strip()
-            
-    #         # Skip non-HTTP links
-    #         if not url.startswith(('http://', 'https://')):
-    #             continue
-                
-    #         # Limit the number of links to crawl
-    #         if links_crawled >= self.max_links_to_crawl:
-    #             logger.info(f"Reached maximum links to crawl ({self.max_links_to_crawl})")
-    #             break
-                
-    #         try:
-    #             logger.info(f"Crawling link: {url}")
-                
-    #             # Fetch the web page with a timeout
-    #             response = requests.get(url, timeout=10)
-    #             response.raise_for_status()  # Raise an exception for bad responses
-                
-    #             # Parse HTML content
-    #             soup = BeautifulSoup(response.text, 'html.parser')
-                
-    #             # Extract text content (remove script and style elements)
-    #             for script in soup(["script", "style"]):
-    #                 script.extract()
-                
-    #             # Get text and clean it up
-    #             text = soup.get_text()
-    #             lines = (line.strip() for line in text.splitlines())
-    #             chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
-    #             text = '\n'.join(chunk for chunk in chunks if chunk)
-                
-    #             if text:
-    #                 all_contents.append({
-    #                     "type": "web_content",
-    #                     "content": f"Content from link: {url}\n\n{text}",
-    #                     "source": url
-    #                 })
-                    
-    #                 links_crawled += 1
-                
-    #             # Rate limiting to be polite
-    #             time.sleep(1)
-                
-    #         except Exception as e:
-    #             logger.warning(f"Failed to crawl link {url}: {e}")
-        
-    #     logger.info(f"Successfully crawled {links_crawled} links")
-    #     return all_contents
-    
+
     def _handle_structured_data_query(self, query: str) -> Optional[str]:
         """Process structured data queries against loaded dataframes."""
         if not self.loaded_dataframes:
@@ -1003,7 +691,7 @@ class DocumentProcessor:
         ]
         
         # Check if this is likely a structured data query
-        if not any(keyword in query.lower() for keyword in structured_keywords):
+        if not any(keyword in query.lower().split(" ") for keyword in structured_keywords):
             return None
             
         # Generate responses for each dataframe
@@ -1020,7 +708,7 @@ class DocumentProcessor:
                 response += ":\n"
                 
                 # Basic dataframe analysis based on query keywords
-                if any(kw in query.lower() for kw in ["average", "mean"]):
+                if any(kw in query.lower().split(" ") for kw in ["average", "mean"]):
                     try:
                         numeric_cols = df.select_dtypes(include=[np.number]).columns
                         if len(numeric_cols) > 0:
@@ -1029,7 +717,7 @@ class DocumentProcessor:
                     except Exception as e:
                         logger.warning(f"Error calculating means: {e}")
                 
-                if any(kw in query.lower() for kw in ["max", "maximum", "highest", "largest", "top"]):
+                if any(kw in query.lower().split(" ") for kw in ["max", "maximum", "highest", "largest", "top"]):
                     try:
                         numeric_cols = df.select_dtypes(include=[np.number]).columns
                         if len(numeric_cols) > 0:
@@ -1038,7 +726,7 @@ class DocumentProcessor:
                     except Exception as e:
                         logger.warning(f"Error calculating maximums: {e}")
                 
-                if any(kw in query.lower() for kw in ["min", "minimum", "lowest", "smallest", "bottom"]):
+                if any(kw in query.lower().split(" ") for kw in ["min", "minimum", "lowest", "smallest", "bottom"]):
                     try:
                         numeric_cols = df.select_dtypes(include=[np.number]).columns
                         if len(numeric_cols) > 0:
@@ -1047,7 +735,7 @@ class DocumentProcessor:
                     except Exception as e:
                         logger.warning(f"Error calculating minimums: {e}")
                 
-                if any(kw in query.lower() for kw in ["sum", "total"]):
+                if any(kw in query.lower().split(" ") for kw in ["sum", "total"]):
                     try:
                         numeric_cols = df.select_dtypes(include=[np.number]).columns
                         if len(numeric_cols) > 0:
@@ -1056,7 +744,7 @@ class DocumentProcessor:
                     except Exception as e:
                         logger.warning(f"Error calculating sums: {e}")
                 
-                if any(kw in query.lower() for kw in ["count", "how many"]):
+                if any(kw in query.lower().split(" ") for kw in ["count", "how many"]):
                     try:
                         response += f"Row count: {len(df)}\n"
                         response += f"Value counts:\n"
@@ -1098,6 +786,7 @@ class DocumentProcessor:
                     documents.append(doc)
             
             elif file_extension in ['.docx', '.doc']:
+                logger.info(f"Processing DOCX file: {file_path}")
                 contents = self._process_docx(file_path)
                 for item in contents:
                     doc = Document(
@@ -1182,34 +871,6 @@ class DocumentProcessor:
         
         return documents
     
-    # def process_directory(self, directory: str = None) -> List[Document]:
-    #     """Process all files in a directory."""
-    #     if directory is None:
-    #         directory = self.data_dir
-            
-    #     logger.info(f"Processing directory: {directory}")
-    #     all_documents = []
-        
-    #     for root, _, files in os.walk(directory):
-    #         for file in files:
-    #             file_path = os.path.join(root, file)
-    #             documents = self.process_file(file_path)
-    #             all_documents.extend(documents)
-        
-    #     # After processing all files, crawl extracted links if enabled
-    #     if self.crawl_links and self.extracted_links:
-    #         web_contents = self._crawl_links()
-    #         for item in web_contents:
-    #             doc = Document(
-    #                 text=item["content"],
-    #                 metadata={
-    #                     "source": item["source"],
-    #                     "type": item["type"]
-    #                 }
-    #             )
-    #             all_documents.append(doc)
-        
-    #     return all_documents
     
     def create_index(self, documents: List[Document]) -> VectorStoreIndex:
         """Create a vector store index from documents."""
@@ -1254,12 +915,7 @@ class DocumentProcessor:
             Answer: """
         )
         
-        # Create query engine with custom parameters
-        # query_engine = index.as_query_engine(
-        #     retriever=retriever,
-        #     text_qa_template=query_template,
-        #     node_postprocessors=[]
-        # )
+
         query_engine = RetrieverQueryEngine.from_args(
             retriever=retriever,
             text_qa_template=query_template,
@@ -1300,13 +956,15 @@ class DocumentQAApp:
             # Model selection
             embedding_model = st.selectbox(
                 "Embedding Model",
-                ["BAAI/bge-small-en-v1.5", "BAAI/bge-base-en-v1.5", "sentence-transformers/all-mpnet-base-v2","models/embedding-001"],
+                # ["models/embedding-001","BAAI/bge-small-en-v1.5", "BAAI/bge-base-en-v1.5", "sentence-transformers/all-mpnet-base-v2"],
+                ["models/embedding-001"],
                 index=0
             )
             
             llm_model = st.selectbox(
                 "LLM Model",
-                ["StabilityAI/stablelm-tuned-alpha-3b", "meta-llama/Llama-2-7b-chat-hf","models/gemini-1.5-flash"],
+                # ["models/gemini-1.5-flash","StabilityAI/stablelm-tuned-alpha-3b", "meta-llama/Llama-2-7b-chat-hf"],
+                ["models/gemini-1.5-flash"],
                 index=0
             )
             
@@ -1387,6 +1045,7 @@ class DocumentQAApp:
                                 file_paths.append(file_path)
                             
                             # Process each file
+                            logger.info(f"Processing {len(file_paths)} files...")
                             all_documents = []
                             for file_path in file_paths:
                                 documents = st.session_state.processor.process_file(file_path)
@@ -1403,21 +1062,6 @@ class DocumentQAApp:
                         finally:
                             # Clean up temp directory
                             shutil.rmtree(temp_dir)
-            
-        # Process directory
-        # st.header("Process Directory")
-        # if not st.session_state.processor:
-        #     st.warning("Please initialize the processor from the sidebar before processing the data directory.")
-        # else:
-        #     if st.button("Process Data Directory"):
-        #         with st.spinner(f"Processing directory {st.session_state.processor.data_dir}..."):
-        #             st.session_state.documents = st.session_state.processor.process_directory()
-                    
-        #             if st.session_state.documents:
-        #                 st.session_state.index = st.session_state.processor.create_index(st.session_state.documents)
-        #                 st.success(f"Processed {len(st.session_state.documents)} document chunks from directory and created index!")
-        #             else:
-        #                 st.error("No documents were found or successfully processed in the directory.")
         
         # Query interface
         st.header("Ask Questions")
@@ -1454,44 +1098,7 @@ class DocumentQAApp:
             st.session_state.messages = []
             st.rerun()            
             st.success("All states reset!")
-        # query = st.text_input("Enter your question")
-        
-        # if st.button("Search"):
-        #     if not query:
-        #         st.warning("Please enter a question before searching.")
-        #     elif not st.session_state.processor:
-        #         st.warning("Please initialize the processor from the sidebar before asking questions.")
-        #     elif not st.session_state.index:
-        #         st.warning("Please process documents first by uploading files before asking questions.")
-        #     else:
-        #         with st.spinner("Searching..."):
-        #             response = st.session_state.processor.query_index(query, st.session_state.index)
 
-        #             st.subheader("Answer")
-        #             st.write(response)
-
-        #             # Show sources
-        #             # st.subheader("Sources")
-        #             # sources_shown = set()
-        #             # for node in st.session_state.index.as_retriever().retrieve(query):
-        #             #     source = node.metadata.get("source", "Unknown")
-        #             #     if source not in sources_shown:
-        #             #         node_type = node.metadata.get("type", "Unknown")
-        #             #         page = node.metadata.get("page", "N/A")
-
-        #             #         source_info = f"- {source}"
-        #             #         if page and page != "N/A":
-        #             #             source_info += f" (Page {page})"
-        #             #         if node_type and node_type != "Unknown":
-        #             #             source_info += f" [{node_type}]"
-
-        #             #         st.write(source_info)
-        #             #         sources_shown.add(source)
-        # if st.button("Reset All"):
-        #     st.session_state.processor = None
-        #     st.session_state.index = None
-        #     st.session_state.documents = None
-        #     st.success("All states reset!")
 
 if __name__ == "__main__":
     app = DocumentQAApp()
