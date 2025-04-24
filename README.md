@@ -36,7 +36,7 @@ The Advanced Document QA System is a powerful document processing and question-a
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/document-qa-system.git
+git clone https://github.com/jeetlab/smart-doc.git
 cd document-qa-system
 ```
 
