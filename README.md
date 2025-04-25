@@ -62,7 +62,16 @@ pip install -r requirements.txt
 
 ## Configuration
 
-The application allows for extensive configuration via the Streamlit interface. Key configurations include:
+The application requires an API key for accessing third-party services (e.g., Google API, etc.). To securely set up the API key without exposing it in the code:
+
+1. **Create a `.env` file** in the root directory of the project (this file will not be committed to GitHub as it is in `.gitignore`).
+   
+2. Add your API key to the `.env` file in the following format:
+
+   ```
+   API_KEY=your_api_key_here
+   ```
+
 
 ### Model Selection
 - **Embedding Model**: Choose from various embedding models for document vectorization
@@ -83,7 +92,7 @@ The application allows for extensive configuration via the Streamlit interface. 
 
 1. Start the application:
 ```bash
-streamlit run app.py
+streamlit run app.py --server.port=8501 --server.address=0.0.0.0
 ```
 
 2. Using the application:
