@@ -1,9 +1,7 @@
 import os
 os.environ["TORCH_USE_RTLD_GLOBAL"] = "YES"
-GOOGLE_API_KEY = "AIzaSyBV44ZygJe0bcNus8tIuUCtoYpjyT0LdZw"  # add your GOOGLE API key here
-os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
 import json
-import torch
+from dotenv import load_dotenv
 import numpy as np
 from PIL import Image
 import pandas as pd
@@ -28,19 +26,15 @@ from llama_index.core import (
     Settings
 )
 from llama_index.core.node_parser import SentenceSplitter
-from llama_index.llms.huggingface import HuggingFaceLLM
+#from llama_index.llms.huggingface import HuggingFaceLLM
 from llama_index.llms.gemini import Gemini
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+#from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.embeddings.gemini import GeminiEmbedding
 from llama_index.core.schema import Document
 from llama_index.core.query_engine import RetrieverQueryEngine
 
-# Document loaders
-from llama_index.readers.file import PDFReader, DocxReader
-
 # For OCR processing
 import pytesseract
-from pdf2image import convert_from_path
 import fitz  # PyMuPDF
 import cv2
 
@@ -52,6 +46,15 @@ import camelot
 
 # For DOCX processing
 import docx
+
+load_dotenv()
+
+GOOGLE_API_KEY = os.getenv("API_KEY")  # add your GOOGLE API key here
+
+if GOOGLE_API_KEY:
+    os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
+else:
+    raise EnvironmentError("Missing API_KEY in environment variables or .env file.")
 
 # Set up logging
 logging.basicConfig(
@@ -89,9 +92,6 @@ class DocumentProcessor:
         self.temperature = temperature
         self.max_links_to_crawl = max_links_to_crawl
         self.structured_data_threshold = structured_data_threshold
-        
-        # Create data directory if it doesn't exist
-        #os.makedirs(data_dir, exist_ok=True)
         
         # Initialize embedding model
         logger.info("Initializing embedding model...")
