@@ -41,7 +41,7 @@ src/
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/jeetlab/smart-doc.git
+git clone https://github.com/rochi2411/smart-doc.git
 cd smart-doc
 ```
 
