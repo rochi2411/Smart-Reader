@@ -1,186 +1,313 @@
-# Advanced Document QA System
+# 📚 Advanced Document QA System
 
-## Overview
+A professional, modular document processing and question-answering system powered by Google AI. Upload documents, process them with advanced AI techniques, and ask questions about their content.
 
-The Advanced Document QA System is a powerful document processing and question-answering application that allows users to upload various document formats, process them with advanced techniques, and ask questions about their content. The system uses modern NLP models and techniques to understand and respond to queries based on the uploaded documents.
+## 🚀 Features
 
-## Features
-
-### Document Processing
-- **Multi-format support**: Process PDF, DOCX, PPTX, Excel, CSV, JSON, and image files
-- **OCR Integration**: Extract text from images and scanned documents
-- **Table Extraction**: Identify and parse tables in PDFs and other documents
-- **Link Extraction**: Extract and optionally crawl hyperlinks found in documents
-- **Image Processing**: Extract and OCR embedded images in documents
-
-### Text Analysis
+### 📄 Document Processing
+- **Multi-format Support**: PDF, TXT, and image files (PNG, JPG, JPEG, TIFF, BMP)
+- **OCR Integration**: Extract text from images and scanned documents using Tesseract
 - **Intelligent Chunking**: Split documents into semantic chunks for better understanding
-- **Vector Indexing**: Create embeddings and vector indexes for semantic search
-- **Structured Data Analysis**: Special handling for tabular data like CSV and Excel files
+- **Vector Indexing**: Create embeddings for semantic search and retrieval
 
-### Question Answering
-- **Contextual Responses**: Generate answers based on document context
-- **Source Attribution**: Identify the source of information within documents
-- **Multiple Models**: Support for different LLM and embedding models
-- **Relevance Control**: Configure similarity thresholds for more accurate responses
+### 🤖 AI-Powered Analysis
+- **Google Gemini Integration**: Latest Google AI models including **Gemini 2.5 Flash**
+- **Semantic Search**: Find relevant document sections based on meaning, not just keywords
+- **Contextual Q&A**: Generate accurate answers based on document content
+- **Chat History**: Persistent conversation history for better user experience
 
-## System Requirements
+### 🏗️ Professional Architecture
+- **Modular Design**: Clean separation of concerns with specialized components
+- **Error Handling**: Comprehensive error handling and logging
+- **Configuration Management**: Centralized, type-safe configuration
+- **Resource Management**: Automatic cleanup and memory management
 
-- Python 3.8+
-- PyTorch
-- 16GB+ RAM (8GB+ recommended for processing large documents)
-- 8GB+ GPU (recommended for faster processing, especially for deep learning tasks and large models)
-- Internet connection (for downloading models and crawling links)
+## 🛠️ Installation
 
-## Installation
+### Prerequisites
+- Python 3.8 or higher
+- Google API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+- Tesseract OCR (for image processing)
 
-1. Clone the repository:
+### System Dependencies
+
+**Linux:**
 ```bash
-git clone https://github.com/jeetlab/smart-doc.git
-cd document-qa-system
+sudo apt-get update
+sudo apt-get install tesseract-ocr
 ```
 
-2. Create a virtual environment and activate it:
+**macOS:**
+```bash
+brew install tesseract
+```
+
+**Windows:**
+Download and install from [Tesseract GitHub](https://github.com/UB-Mannheim/tesseract/wiki)
+
+### Python Setup
+
+1. **Clone the repository:**
+```bash
+git clone <repository-url>
+cd smart-doc
+```
+
+2. **Create virtual environment:**
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-3. Install the required packages:
+3. **Install dependencies:**
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Install Tesseract OCR for image processing:
-   - **Linux**: `sudo apt-get install tesseract-ocr`
-   - **macOS**: `brew install tesseract`
-   - **Windows**: Download and install from [GitHub](https://github.com/UB-Mannheim/tesseract/wiki)
-
-5. If using PDF table extraction, install additional dependencies:
-   - **For Camelot**: `pip install camelot-py[cv]`
-   - **For Tabula**: Java Runtime Environment (JRE)
-
-## Configuration
-
-The application requires an API key for accessing third-party services (e.g., Google API, etc.). To securely set up the API key without exposing it in the code:
-
-1. **Create a `.env` file** in the root directory of the project (this file will not be committed to GitHub as it is in `.gitignore`).
-   
-2. Add your API key to the `.env` file in the following format:
-
-   ```
-   API_KEY=your_api_key_here
-   ```
-
-
-### Model Selection
-- **Embedding Model**: Choose from various embedding models for document vectorization
-- **LLM Model**: Select the language model for generating responses
-
-### Processing Parameters
-- **Chunk Size**: Configure text chunk size for processing (larger values provide more context)
-- **Chunk Overlap**: Set overlap between chunks to maintain context continuity
-- **OCR Usage**: Enable/disable OCR for images and scanned documents
-- **Link Crawling**: Enable/disable crawling of hyperlinks found in documents
-
-### Query Parameters
-- **Top K Results**: Number of similar chunks to retrieve per query
-- **Similarity Cutoff**: Minimum similarity threshold for document retrieval
-- **LLM Temperature**: Control randomness in generated responses
-
-## Usage
-
-1. Start the application:
+4. **Configure API key:**
+Create a `.env` file in the project root:
 ```bash
-streamlit run app.py --server.port=8501 --server.address=0.0.0.0
+echo "API_KEY=your_google_api_key_here" > .env
 ```
 
-2. Using the application:
-   - Access the web interface at `http://localhost:8501`
-   - Configure processing parameters in the sidebar
-   - Click "Initialize Processor" to set up the system
-   - Upload documents using the file upload interface
-   - Click "Process Files" to analyze the documents
-   - Ask questions in the chat interface at the bottom
+## 🚀 Usage
 
-## Example Queries
+### Starting the Application
+```bash
+streamlit run main.py
+```
 
-After uploading and processing documents, try questions like:
+The application will be available at `http://localhost:8501`
 
-- "What is the main topic of the document?"
-- "Summarize the key points in the third section."
-- "What data is shown in the table on page 4?"
-- "Calculate the average value in the sales column."
-- "What images are included in the presentation?"
-- "What links are referenced in the document?"
+### Using the System
 
-## Class Structure
+1. **Initialize the Processor:**
+   - Configure model settings in the sidebar
+   - Choose from available Gemini models (including **Gemini 2.5 Flash**)
+   - Click "🚀 Initialize Processor"
+   - Wait for successful initialization
 
-The application consists of two main classes:
+2. **Upload Documents:**
+   - Use the file uploader to select documents
+   - Supported formats: PDF, TXT, PNG, JPG, JPEG, TIFF, BMP
+   - Click "📊 Process Files"
 
-### DocumentProcessor
-Handles all document processing tasks including:
-- Processing different file formats (PDF, DOCX, images, etc.)
-- OCR for text extraction from images
-- Table extraction from PDFs and other documents
-- Hyperlink extraction and crawling
-- Vector index creation and querying
+3. **Ask Questions:**
+   - Use the chat interface at the bottom
+   - Ask questions about your document content
+   - View answers and chat history
 
-### DocumentQAApp
-Manages the Streamlit interface including:
-- User interface components and layout
-- File uploading and handling
-- Configuration management
-- Chat interface for querying
+### Example Queries
+- "What is the main topic of this document?"
+- "Summarize the key points"
+- "What are the conclusions mentioned?"
+- "Extract the important dates and numbers"
 
-## Dependencies
+## ⚙️ Configuration
 
-Major libraries used include:
-- **LlamaIndex**: Document indexing and retrieval
-- **PyTorch/Hugging Face**: For embedding and language models
-- **PyMuPDF (fitz)**: PDF processing
-- **Tesseract**: OCR processing
-- **Camelot/Tabula**: Table extraction from PDFs
-- **pandas**: Data processing for structured files
-- **Beautiful Soup**: Web scraping for link crawling
-- **Streamlit**: Web interface
+### Model Settings
+- **Embedding Model**: Choose between `models/embedding-001` or `models/text-embedding-004`
+- **Language Model**: Select from:
+  - `models/gemini-2.5-flash` ⚡ **Latest and fastest** (Default)
+  - `models/gemini-1.5-flash` - Fast and efficient
+  - `models/gemini-1.5-pro` - Most capable
+  - `models/gemini-pro` - Standard model
+- **Temperature**: Control randomness in responses (0.0 = focused, 1.0 = creative)
 
-## Customization
+### Processing Settings
+- **Chunk Size**: Size of text chunks for processing (256-2048 characters)
+- **Chunk Overlap**: Overlap between consecutive chunks (0-200 characters)
+- **Enable OCR**: Extract text from images and scanned documents
 
-### Adding New File Types
-To support additional file formats, extend the `process_file` method in the `DocumentProcessor` class.
+### Query Settings
+- **Top K Results**: Number of similar chunks to retrieve for each query (1-10)
 
-### Custom Embedding Models
-Configure different embedding models by changing the `embedding_model` parameter when initializing the processor.
+## 🆕 What's New - Gemini 2.5 Flash
 
-### Custom LLM Models
-Use different language models by changing the `llm_model` parameter and ensuring the model is properly loaded.
+### **🚀 Gemini 2.5 Flash Benefits:**
+- **Faster Response Times**: Up to 2x faster than previous models
+- **Improved Accuracy**: Better understanding of context and nuance
+- **Enhanced Reasoning**: Superior logical reasoning capabilities
+- **Better Code Understanding**: Improved performance on technical documents
+- **Cost Effective**: Optimized for production use
 
-## Troubleshooting
+### **When to Use Each Model:**
+- **Gemini 2.5 Flash**: Best for most use cases - fast, accurate, and cost-effective
+- **Gemini 1.5 Pro**: Use for complex reasoning tasks requiring maximum capability
+- **Gemini 1.5 Flash**: Good balance of speed and capability for standard tasks
+
+## 🏗️ Project Structure
+
+```
+smart-doc/
+├── main.py                   # Main application with complete UI
+├── requirements.txt          # Python dependencies
+├── README.md                # This documentation
+├── Dockerfile               # Docker configuration
+├── .env                     # Environment variables (create this)
+├── .gitignore              # Git ignore rules
+├── app.log                 # Application logs (auto-generated)
+└── src/                    # Core business logic modules
+    ├── config/
+    │   └── settings.py     # Configuration management
+    ├── core/
+    │   └── document_processor.py  # Main document processing logic
+    ├── processors/
+    │   ├── ocr_processor.py       # OCR functionality
+    │   ├── pdf_processor.py       # PDF processing
+    │   ├── office_processor.py    # Office document processing
+    │   └── web_crawler.py         # Web content extraction
+    └── utils/
+        ├── file_utils.py          # File management utilities
+        └── logger.py              # Logging configuration
+```
+
+### Architecture Design
+
+- **`main.py`**: Contains the complete Streamlit web interface and application logic
+- **`src/config/`**: Centralized configuration management with support for all Gemini models
+- **`src/core/`**: Main document processing engine with AI integration
+- **`src/processors/`**: Specialized processors for different document types and operations
+- **`src/utils/`**: Utility functions for file management and logging
+
+## 🐳 Docker Deployment
+
+### Build and Run
+```bash
+# Build the Docker image
+docker build -t smart-doc .
+
+# Run the container
+docker run -p 8501:8501 -e API_KEY=your_google_api_key_here smart-doc
+```
+
+### Docker Compose (Optional)
+Create a `docker-compose.yml`:
+```yaml
+version: '3.8'
+services:
+  smart-doc:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - API_KEY=your_google_api_key_here
+    volumes:
+      - ./logs:/app/logs
+```
+
+Run with: `docker-compose up`
+
+## 🔧 Development
+
+### Code Structure
+The application follows a clean, modular architecture:
+
+- **Main Application**: `main.py` contains the complete Streamlit interface
+- **Configuration Layer**: Centralized settings management in `src/config/`
+- **Core Layer**: Main business logic and document processing in `src/core/`
+- **Processor Layer**: Specialized document processors in `src/processors/`
+- **Utils Layer**: Utility functions and helpers in `src/utils/`
+
+### Adding New Document Types
+1. Create a new processor in `src/processors/`
+2. Implement the processing logic following existing patterns
+3. Register it in `DocumentProcessor.process_single_file()`
+4. Add the file extension to `FileManager.is_supported_file()`
+
+### Adding New AI Models
+1. Update model options in `src/config/settings.py`
+2. Add the model to the dropdown in `main.py`
+3. Test the integration
+
+### Extending Functionality
+- **New Features**: Add new processors or extend existing ones in `src/processors/`
+- **UI Enhancements**: Modify `main.py` to add new interface elements
+- **Configuration Options**: Update `src/config/settings.py` for new settings
+
+## 🐛 Troubleshooting
 
 ### Common Issues
 
-1. **OCR not working properly**:
-   - Ensure Tesseract is properly installed and in your PATH
-   - Try adjusting image preprocessing settings in the `_ocr_image` method
+**1. API Key Errors**
+```
+Error: API key is not set
+```
+**Solution**: Ensure your Google API key is correctly set in the `.env` file
 
-2. **Memory issues with large files**:
-   - Reduce chunk size in the configuration
-   - Process fewer documents at once
-   - Use a machine with more RAM
+**2. OCR Not Working**
+```
+Error: Tesseract not found
+```
+**Solution**: Install Tesseract OCR and ensure it's in your system PATH
 
-3. **Slow processing speed**:
-   - Disable OCR and link crawling for faster processing
-   - Use smaller embedding models
-   - Reduce the number of documents processed simultaneously
+**3. Memory Issues**
+```
+Error: Out of memory
+```
+**Solution**: Reduce chunk size or process fewer documents at once
 
-## License
+**4. Import Errors**
+```
+Error: No module named 'src'
+```
+**Solution**: Run the application from the project root directory
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+### Debugging
+- Check `app.log` for detailed error messages
+- Use the system status panel to verify component initialization
+- Enable debug mode by expanding error details in the UI
 
-## Acknowledgements
+## 📊 Performance Tips
 
-- LlamaIndex for the vector indexing capabilities
-- Hugging Face for embedding and language models
-- The Streamlit team for the web interface framework
-- Various open-source projects for document processing components
+### Optimization
+- **Model Selection**: Use **Gemini 2.5 Flash** for best speed/accuracy balance
+- **Chunk Size**: Larger chunks provide more context but use more memory
+- **OCR**: Disable OCR if processing only text documents
+- **File Size**: Process smaller files for better performance
+
+### Resource Usage
+- **Memory**: ~2-4GB RAM recommended for typical usage
+- **Storage**: Temporary files are automatically cleaned up
+- **Network**: Requires internet connection for Google AI API calls
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes following the existing code style
+4. Test your changes thoroughly
+5. Submit a pull request with a clear description
+
+### Development Guidelines
+- Follow the existing modular structure
+- Add comprehensive error handling
+- Include type hints for better code quality
+- Update documentation for new features
+- Test with different document types and models
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Google AI**: For providing the Gemini models and APIs, including the latest Gemini 2.5 Flash
+- **LlamaIndex**: For the document indexing and retrieval framework
+- **Streamlit**: For the web application framework
+- **Tesseract**: For OCR capabilities
+- **PyMuPDF**: For PDF processing
+- **Open Source Community**: For the various libraries and tools used
+
+## 📞 Support
+
+For issues, questions, or contributions:
+- Create an issue on GitHub
+- Check the troubleshooting section above
+- Review the application logs in `app.log`
+
+---
+
+**Version**: 2.1.0 (Gemini 2.5 Flash Support)  
+**Last Updated**: 2024  
+**Status**: Production Ready ✅
