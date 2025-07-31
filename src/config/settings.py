@@ -1,5 +1,5 @@
 """
-Configuration settings for the Document QA System.
+Configuration settings for the Document QA System with Gemini 2.5 Flash support.
 """
 import os
 from dataclasses import dataclass
@@ -12,8 +12,8 @@ load_dotenv()
 @dataclass
 class ModelConfig:
     """Configuration for AI models."""
-    embedding_model: str = "BAAI/bge-small-en-v1.5"
-    llm_model: str = "models/gemini-1.5-flash"
+    embedding_model: str = "models/embedding-001"  # Proper Gemini embedding model
+    llm_model: str = "models/gemini-2.5-flash"     # Updated to use Gemini 2.5 Flash by default
     temperature: float = 0.2
     api_key: Optional[str] = None
     
