@@ -49,8 +49,8 @@ Download and install from [Tesseract GitHub](https://github.com/UB-Mannheim/tess
 
 1. **Clone the repository:**
 ```bash
-git clone <repository-url>
-cd smart-doc
+git clone https://github.com/rochi2411/Smart-Reader.git
+cd Smart-Reader
 ```
 
 2. **Create virtual environment:**
@@ -139,7 +139,7 @@ The application will be available at `http://localhost:8501`
 ## 🏗️ Project Structure
 
 ```
-smart-doc/
+Smart-Reader/
 ├── main.py                   # Main application with complete UI
 ├── requirements.txt          # Python dependencies
 ├── README.md                # This documentation
@@ -175,10 +175,10 @@ smart-doc/
 ### Build and Run
 ```bash
 # Build the Docker image
-docker build -t smart-doc .
+docker build -t Smart-Reader .
 
 # Run the container
-docker run -p 8501:8501 -e API_KEY=your_google_api_key_here smart-doc
+docker run -p 8501:8501 -e API_KEY=your_google_api_key_here Smart-Reader
 ```
 
 ### Docker Compose (Optional)
@@ -186,7 +186,7 @@ Create a `docker-compose.yml`:
 ```yaml
 version: '3.8'
 services:
-  smart-doc:
+  Smart-Reader:
     build: .
     ports:
       - "8501:8501"
